@@ -2,3 +2,8 @@ resolver: lts-10.3
 
 packages:
 - .
+
+extra-deps:
+- git: https://github.com/tolysz/c-mosquitto
+  commit: b482538ae2c153c4db9dac1f3f85c109c0d0a1b9
+- inline-c-0.6.1.0
