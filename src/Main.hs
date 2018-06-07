@@ -42,7 +42,7 @@ main = runCommand $ \MainOptions{..} args -> M.withMosquittoLibrary $ do
     m <- M.newMosquitto True serverName (Just ())
     -- M.setTls m caCert userCert userKey
     -- M.setTlsInsecure m True
-    M.setUsernamePassword m "test" "test"  -- doesn't error out if pass is wrong :/
+    M.setUsernamePassword m "admin" "admin"  -- doesn't error out if pass is wrong :/
     
     M.setReconnectDelay m True 2 30
 
