@@ -11,9 +11,9 @@ In one terminal, do:
 
 In another terminal, do:
 
-    $ stack build --fast && stack exec -- mq-experiment --port 1883
+    $ stack build --fast && stack exec -- mqtt-bin --port 1883
 
-If all goes well, you should see `mq-experiment` sending and receiving messages:
+If all goes well, you should see `mqtt-bin` sending and receiving messages:
 
 ```
 Client server-demo sending CONNECT
