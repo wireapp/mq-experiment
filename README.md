@@ -4,16 +4,19 @@
 
 In one terminal, do:
 
-    $ docker build -t rabbitmq-mqtt .
-    $ docker run -p 5672:5672 -p 1883:1883 -p 8080:15672 -d --hostname my-rabbit --name some-rabbit -e RABBITMQ_ERLANG_COOKIE=secret rabbitmq-mqtt
-    $ docker run -it --rm --link some-rabbit:my-rabbit -e RABBITMQ_ERLANG_COOKIE=secret -e RABBITMQ_NODENAME=rabbit@my-rabbit rabbitmq-mqtt bash
+    $ docker build -t rabbitmq .
+    $ docker run -p 5672:5672 -p 1883:1883 -p 61613:61613 -d --hostname my-rabbit --name some-rabbit -e RABBITMQ_ERLANG_COOKIE=secret rabbitmq
+    $ docker run -it --rm --link some-rabbit:my-rabbit -e RABBITMQ_ERLANG_COOKIE=secret -e RABBITMQ_NODENAME=rabbit@my-rabbit rabbitmq bash
     # rabbitmqctl add_user admin admin && rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
+    # rabbitmqctl add_vhost localhost rabbitmqctl set_permissions -p localhost admin ".*" ".*" ".*"
 
-In another terminal, do:
+In another terminal, do either of these:
 
-    $ stack build --fast && stack exec -- mqtt-bin --port 1883
+    $ stack build --fast && stack exec -- mqtt-bin
+    $ stack build --fast && stack exec -- stomp-bin
 
-If all goes well, you should see `mqtt-bin` sending and receiving messages:
+If all goes well, you should see messages being sent and received. For MQTT
+it will look like this:
 
 ```
 Client server-demo sending CONNECT
@@ -35,3 +38,5 @@ Message {mid = 0, topic = "sometopic", payload = "krendel", qos = 0, retain = Fa
     $ docker run -p 1883:1883 -p 8161:8161 --name activemq rmohr/activemq:5.15.4-alpine
 
 After that it's the same.
+
+TODO: STOMP

@@ -3,42 +3,52 @@
 module Main where
 
 import           Control.Concurrent
-import           Control.Monad
-import qualified Network.Mosquitto as M
-import           Network.Mosquitto.Internal.Types
-
 import           Control.Applicative
+import           Control.Monad
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import           Data.Text (Text)
+
+import qualified Network.Mom.Stompl.Client.Queue as S
+import qualified Codec.MIME.Type as MIME
+
 import           Options
 
 data MainOptions = MainOptions
-    { caCert    :: String
-    , userCert  :: String
-    , userKey   :: String
-    , server    :: String
-    , serverName :: String
+    { server    :: String
     , port      :: Int
-    , keepAlive :: Int
+    , message   :: String
     }
 
 instance Options MainOptions where
     defineOptions = pure MainOptions
-        <*> simpleOption "ca" "rootCA.pem"
-            "server's CA"
-        <*> simpleOption "cert" "cert.pem"
-            "client cert"
-        <*> simpleOption "key" "cert.key"
-            "client key"
         <*> simpleOption "server" "localhost"
             "server"
-        <*> simpleOption "name" "server-demo"
-            "server's name"
-        <*> simpleOption "port" 1883
+        <*> simpleOption "port" 61613
             "server's port"
-        <*> simpleOption "keep-alive" 1200
-            "server's port"
+        <*> simpleOption "message" "first"
+            "message"
 
 main :: IO ()
-main = runCommand $ \MainOptions{..} args -> M.withMosquittoLibrary $ do
+main =
+  runCommand $ \MainOptions{..} args -> do
+  S.withConnection server port [S.OAuth "admin" "admin"] [("host", "/")] $ \conn -> do
+    reader <- S.newReader conn "TestQ" "/queue/test" [] [] iconv
+    writer <- S.newWriter conn "TestQ" "/queue/test" [] [] oconv
+    forkIO $ forever $ do
+        S.writeQ writer MIME.nullType [] (T.pack message)
+        threadDelay 5000000
+    forever $ do
+        msg <- S.readQ reader
+        print (S.msgContent msg)
+
+iconv :: S.InBound Text
+iconv _ _ _ = pure . T.decodeUtf8  -- NB. might fail at runtime
+
+oconv :: S.OutBound Text
+oconv = pure . T.encodeUtf8
+
+{-  
     m <- M.newMosquitto True serverName (Just ())
     -- M.setTls m caCert userCert userKey
     -- M.setTlsInsecure m True
@@ -63,3 +73,4 @@ main = runCommand $ \MainOptions{..} args -> M.withMosquittoLibrary $ do
 
     M.loopForever m
     M.destroyMosquitto m
+-}
