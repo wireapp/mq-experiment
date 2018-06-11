@@ -2,15 +2,11 @@
 
 ## Instructions for running with RabbitMQ
 
-In one terminal, do:
+Start up RabbitMQ:
 
-    $ docker build -t rabbitmq .
-    $ docker run -p 5672:5672 -p 1883:1883 -p 61613:61613 -d --hostname my-rabbit --name some-rabbit -e RABBITMQ_ERLANG_COOKIE=secret rabbitmq
-    $ docker run -it --rm --link some-rabbit:my-rabbit -e RABBITMQ_ERLANG_COOKIE=secret -e RABBITMQ_NODENAME=rabbit@my-rabbit rabbitmq bash
-    # rabbitmqctl add_user admin admin && rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
-    # rabbitmqctl add_vhost localhost rabbitmqctl set_permissions -p localhost admin ".*" ".*" ".*"
+    $ make build-rabbit run-rabbit
 
-In another terminal, do either of these:
+Then do either of these:
 
     $ stack build --fast && stack exec -- mqtt-bin
     $ stack build --fast && stack exec -- stomp-bin
