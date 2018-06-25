@@ -19,6 +19,7 @@ data MainOptions = MainOptions
     , port      :: Int
     , message   :: String
     , receive   :: Bool
+    , send      :: Bool
     }
 
 instance Options MainOptions where
@@ -31,6 +32,8 @@ instance Options MainOptions where
             "message"
         <*> simpleOption "receive" False
             "only receiving"
+        <*> simpleOption "send" False
+            "only sending"
 
 main :: IO ()
 main =
@@ -39,9 +42,10 @@ main =
         reader <- S.newReader conn "TestQ" "/queue/test" [S.OMode S.ClientIndi] [] iconv
         writer <- S.newWriter conn "TestQ" "/queue/test" [S.OWithReceipt, S.OWaitReceipt] [] oconv
         unless receive $ void $ forkIO $ forM_ [1..] $ \i -> do
-            S.writeQ writer MIME.nullType [] (T.pack (message ++ " " ++ show i))
+            S.writeQ writer MIME.nullType [("persistent", "true")]
+                (T.pack (message ++ " " ++ show i))
             threadDelay 5000000
-        forever $ do
+        unless send $ void $ forkIO $ forever $ do
             msg <- S.readQ reader
             print (S.msgContent msg)
             case T.takeWhile (/= ' ') (S.msgContent msg) of
@@ -49,6 +53,7 @@ main =
                 "loop!"  -> threadDelay maxBound
                 _        -> S.ack conn msg
             threadDelay 3000000
+        forever $ threadDelay maxBound
 
 iconv :: S.InBound Text
 iconv _ _ _ = pure . T.decodeUtf8  -- NB. might fail at runtime
